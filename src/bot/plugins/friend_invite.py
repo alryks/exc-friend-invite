@@ -389,26 +389,26 @@ class FriendInvitePlugin(Plugin):
             },
             {"display_name": "Рекомендатель", "name": "referral", "type": "text", "optional": False, "default": data.get("referral", "")},
             {"display_name": "ФИО кандидата", "name": "name", "type": "text", "optional": False, "default": data.get("name", "")},
-            # {
-            #     "display_name": "Пол",
-            #     "name": "gender",
-            #     "type": "radio",
-            #     "optional": False,
-            #     "options": [{"text": "Мужской", "value": "Мужской"}, {"text": "Женский", "value": "Женский"}],
-            #     "default": data.get("gender", "Мужской"),
-            # },
+            {
+                "display_name": "Пол",
+                "name": "gender",
+                "type": "radio",
+                "optional": False,
+                "options": [{"text": "Мужской", "value": "Мужской"}, {"text": "Женский", "value": "Женский"}],
+                "default": data.get("gender", "Мужской"),
+            },
             # # {"display_name": "Телефон", "name": "phone", "type": "text", "subtype": "tel", "optional": True, "default": data.get("phone", "")},
             # {"display_name": "Дата рождения", "name": "age", "type": "date", "optional": False, "default": str(data.get("age", ""))[:10]},
             # {"display_name": "Дата прибытия", "name": "date_on_object", "type": "date", "optional": False, "default": str(data.get("date_on_object", ""))[:10]},
-            # {
-            #     "display_name": "Гражданство",
-            #     "name": "residence",
-            #     "type": "select",
-            #     "optional": False,
-            #     "default": data.get("residence", "Россия"),
-            #     "options": [{"text": value, "value": value} for value in ["Россия", "Беларусь", "Киргизия", "Казахстан"]],
-            # },
-            # {"display_name": "Комментарий", "name": "comment", "type": "textarea", "optional": True, "default": data.get("comment", "")},
+            {
+                "display_name": "Гражданство",
+                "name": "residence",
+                "type": "select",
+                "optional": False,
+                "default": data.get("residence", "Россия"),
+                "options": [{"text": value, "value": value} for value in ["Россия", "Беларусь", "Киргизия", "Казахстан"]],
+            },
+            {"display_name": "Комментарий", "name": "comment", "type": "textarea", "optional": True, "default": data.get("comment", "")},
         ]
         if default_job is not None:
             elements[0]["default"] = default_job
