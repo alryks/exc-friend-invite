@@ -388,7 +388,7 @@ class FriendInvitePlugin(Plugin):
             #     "options": [{"text": format_job(job)[:75], "value": key} for key, job in session.jobs.items()],
             # },
             {"display_name": "Рекомендатель", "name": "referral", "type": "text", "optional": False, "default": data.get("referral", "")},
-            # {"display_name": "ФИО кандидата", "name": "name", "type": "text", "optional": False, "default": data.get("name", "")},
+            {"display_name": "ФИО кандидата", "name": "name", "type": "text", "optional": False, "default": data.get("name", "")},
             # {
             #     "display_name": "Пол",
             #     "name": "gender",
