@@ -400,14 +400,14 @@ class FriendInvitePlugin(Plugin):
             {"display_name": "Телефон", "name": "phone", "type": "text", "subtype": "tel", "optional": True, "default": data.get("phone", "")},
             {"display_name": "Дата рождения", "name": "age", "type": "date", "optional": False, "default": str(data.get("age", ""))[:10]},
             {"display_name": "Дата прибытия", "name": "date_on_object", "type": "date", "optional": False, "default": str(data.get("date_on_object", ""))[:10]},
-            {
-                "display_name": "Гражданство",
-                "name": "residence",
-                "type": "select",
-                "optional": False,
-                "default": data.get("residence", "Россия"),
-                "options": [{"text": value, "value": value} for value in ["Россия", "Беларусь", "Киргизия", "Казахстан"]],
-            },
+            # {
+            #     "display_name": "Гражданство",
+            #     "name": "residence",
+            #     "type": "select",
+            #     "optional": False,
+            #     "default": data.get("residence", "Россия"),
+            #     "options": [{"text": value, "value": value} for value in ["Россия", "Беларусь", "Киргизия", "Казахстан"]],
+            # },
             {"display_name": "Комментарий", "name": "comment", "type": "textarea", "optional": True, "default": data.get("comment", "")},
         ]
         if default_job is not None:
