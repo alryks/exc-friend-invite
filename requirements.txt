@@ -1,0 +1,2 @@
+mmpy-bot==2.2.1
+pydantic-settings==2.13.1
