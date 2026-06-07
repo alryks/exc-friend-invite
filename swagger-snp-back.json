@@ -1,0 +1,659 @@
+{
+  "definitions":{
+    
+  },
+  "info":{
+    "description":"powered by Flasgger",
+    "termsOfService":"/tos",
+    "title":"A swagger API",
+    "version":"0.0.1"
+  },
+  "paths":{
+    "/add_app_photo":{
+      "post":{
+        "description":"add application photo<br/>",
+        "operationId":"add_application_photo",
+        "parameters":[
+          {
+            "in":"body",
+            "name":"application_id",
+            "schema":{
+              "example":{
+                "application_id":"6670b8bd7b24be8bc6dc7132"
+              },
+              "type":"string"
+            }
+          },
+          {
+            "in":"body",
+            "name":"photo",
+            "schema":{
+              "example":{
+                "photo":"base64 encoded image data"
+              },
+              "type":"string"
+            }
+          }
+        ],
+        "responses":{
+          "200":{
+            "description":"",
+            "schema":{
+              "example":{
+                "status":"ok"
+              }
+            }
+          }
+        },
+        "summary":"        ",
+        "tags":[
+          "app_api"
+        ]
+      }
+    },
+    "/clear_app_photo":{
+      "post":{
+        "description":"clear application photos<br/>",
+        "operationId":"clear_application_photos",
+        "parameters":[
+          {
+            "in":"body",
+            "name":"application_id",
+            "schema":{
+              "example":{
+                "application_id":"6670b8bd7b24be8bc6dc7132"
+              },
+              "type":"string"
+            }
+          }
+        ],
+        "responses":{
+          "200":{
+            "description":"",
+            "schema":{
+              "example":{
+                "status":"ok"
+              }
+            }
+          }
+        },
+        "summary":"        ",
+        "tags":[
+          "app_api"
+        ]
+      }
+    },
+    "/create_app":{
+      "post":{
+        "description":"create application<br/>",
+        "operationId":"create_application",
+        "responses":{
+          "200":{
+            "description":"",
+            "schema":{
+              "example":{
+                "application_id":"6670b8bd7b24be8bc6dc7132",
+                "status":"ok"
+              }
+            }
+          }
+        },
+        "summary":"        ",
+        "tags":[
+          "app_api"
+        ]
+      }
+    },
+    "/delete_app":{
+      "post":{
+        "description":"delete application<br/>",
+        "operationId":"delete_application",
+        "parameters":[
+          {
+            "in":"body",
+            "name":"application_id",
+            "schema":{
+              "example":{
+                "application_id":"6670b8bd7b24be8bc6dc7132"
+              },
+              "type":"string"
+            }
+          }
+        ],
+        "responses":{
+          "200":{
+            "description":"",
+            "schema":{
+              "example":{
+                "status":"ok"
+              }
+            }
+          }
+        },
+        "summary":"        ",
+        "tags":[
+          "app_api"
+        ]
+      }
+    },
+    "/get_api_key":{
+      "post":{
+        "description":"get api key<br/>",
+        "operationId":"get_api_key",
+        "responses":{
+          "200":{
+            "description":"",
+            "schema":{
+              "example":{
+                "key":"j283fihOP984un93hojse2326LKlekk",
+                "status":"ok"
+              }
+            }
+          }
+        },
+        "summary":"        ",
+        "tags":[
+          "access"
+        ]
+      }
+    },
+    "/get_app":{
+      "post":{
+        "description":"get application data<br/>",
+        "operationId":"get_application_data",
+        "parameters":[
+          {
+            "in":"body",
+            "name":"application_id",
+            "schema":{
+              "example":{
+                "application_id":"6670b8bd7b24be8bc6dc7132"
+              },
+              "type":"string"
+            }
+          }
+        ],
+        "responses":{
+          "200":{
+            "description":"",
+            "schema":{
+              "example":{
+                "data":{
+                  "_id":"6670b8bd7b24be8bc6dc7132",
+                  "age":"1990-01-01 00:00:00",
+                  "comment":"Комментарий к анкете",
+                  "date_on_object":"2024-05-01 00:00:00",
+                  "gender":"Мужской",
+                  "job":{
+                    "вид_внешности":"славянская и не славянская внешность",
+                    "возраст_до":45,
+                    "возраст_от":18,
+                    "гражданство":"РФ, РБ, Казахстан, Киргизия",
+                    "должность":"Комплектовщик",
+                    "объект":"Восток-Запад СПБ",
+                    "пол":"Мужской",
+                    "тип_работы":"Вахта"
+                  },
+                  "name":"Иванов Иван Иванович",
+                  "phone":"+7 (926) 123-45-67",
+                  "photo_ids":[
+                    
+                  ],
+                  "photo_pdf":"6670b8bd7b24be8bc6dc7132",
+                  "referral":"Петров Петр Петрович",
+                  "residence":"Россия"
+                },
+                "status":"ok"
+              }
+            }
+          }
+        },
+        "summary":"        ",
+        "tags":[
+          "app_api"
+        ]
+      }
+    },
+    "/get_app_photo":{
+      "post":{
+        "description":"get application photos as PDF<br/>",
+        "operationId":"get_application_photos_as_PDF",
+        "parameters":[
+          {
+            "in":"body",
+            "name":"application_id",
+            "schema":{
+              "example":{
+                "application_id":"6670b8bd7b24be8bc6dc7132"
+              },
+              "type":"string"
+            }
+          }
+        ],
+        "responses":{
+          "200":{
+            "description":"",
+            "schema":{
+              "example":{
+                "pdf_base64":"base64 encoded PDF data",
+                "pdf_url":"https://cdn.example.com/6670b8bd7b24be8bc6dc7132.pdf",
+                "status":"ok"
+              }
+            }
+          }
+        },
+        "summary":"        ",
+        "tags":[
+          "app_api"
+        ]
+      }
+    },
+    "/get_apps":{
+      "post":{
+        "description":"get_apps<br/>",
+        "operationId":"get_apps",
+        "parameters":[
+          {
+            "in":"body",
+            "name":"tg_id",
+            "schema":{
+              "example":{
+                "tg_id":1124414212412421
+              },
+              "type":"int"
+            }
+          }
+        ],
+        "responses":{
+          "200":{
+            "description":"",
+            "schema":{
+              "example":{
+                "applications":[
+                  {
+                    "_id":"6670b8bd7b24be8bc6dc7132",
+                    "age":"1997-11-19 00:00:00",
+                    "comment":"Комментарий к анкете",
+                    "date_on_object":"2024-08-08 00:00:00",
+                    "gender":"Мужской",
+                    "job":{
+                      "вид_внешности":"славянская и не славянская внешность",
+                      "возраст_до":45,
+                      "возраст_от":18,
+                      "гражданство":"РФ, РБ, Казахстан, Киргизия",
+                      "должность":"Комплектовщик",
+                      "объект":"Восток-Запад СПБ",
+                      "пол":"Мужской",
+                      "тип_работы":"Вахта"
+                    },
+                    "name":"Каспарьянц Георгий Григорьевич",
+                    "phone":"+7 (926) 345-53-82",
+                    "photo_ids":[
+                      
+                    ],
+                    "photo_pdf":"6670b8bd7b24be8bc6dc7132",
+                    "referral":"Петров Петр Петрович",
+                    "residence":"Россия"
+                  }
+                ],
+                "status":"ok"
+              }
+            }
+          }
+        },
+        "summary":"        ",
+        "tags":[
+          "apps"
+        ]
+      }
+    },
+    "/get_facility_binds":{
+      "post":{
+        "description":"get facility binds<br/>",
+        "operationId":"get_facility_binds",
+        "responses":{
+          "200":{
+            "description":"",
+            "schema":{
+              "example":{
+                "binds":[
+                  {
+                    "facility":"Восток-Запад СПБ",
+                    "name":"Иванов Иван Иванович"
+                  }
+                ],
+                "status":"ok"
+              }
+            }
+          }
+        },
+        "summary":"        ",
+        "tags":[
+          "facility_bind"
+        ]
+      }
+    },
+    "/get_jobs":{
+      "post":{
+        "description":"get jobs list<br/>",
+        "operationId":"get_jobs_list",
+        "responses":{
+          "200":{
+            "description":"",
+            "schema":{
+              "example":{
+                "jobs":[
+                  {
+                    "вид_внешности":"славянская и не славянская внешность",
+                    "возраст_до":45,
+                    "возраст_от":18,
+                    "гражданство":"РФ, РБ, Казахстан, Киргизия",
+                    "должность":"Комплектовщик",
+                    "объект":"Восток-Запад СПБ",
+                    "пол":"Мужской",
+                    "тип_работы":"Вахта",
+                    "удаленный_подбор":true
+                  }
+                ],
+                "status":"ok"
+              }
+            }
+          }
+        },
+        "summary":"        ",
+        "tags":[
+          "jobs"
+        ]
+      }
+    },
+    "/get_user_apps":{
+      "post":{
+        "description":"get_user_apps<br/>",
+        "operationId":"get_user_apps",
+        "parameters":[
+          {
+            "in":"body",
+            "name":"tg_id",
+            "schema":{
+              "example":{
+                "tg_id":1124414212412421
+              },
+              "type":"int"
+            }
+          }
+        ],
+        "responses":{
+          "200":{
+            "description":"",
+            "schema":{
+              "example":{
+                "applications":[
+                  {
+                    "_id":"6670b8bd7b24be8bc6dc7132",
+                    "age":"1997-11-19 00:00:00",
+                    "comment":"Комментарий к анкете",
+                    "date_on_object":"2024-08-08 00:00:00",
+                    "gender":"Мужской",
+                    "job":{
+                      "должность":"Комплектовщик",
+                      "объект":"Восток-Запад СПБ"
+                    },
+                    "name":"Каспарьянц Георгий Григорьевич",
+                    "phone":"+7 (926) 345-53-82",
+                    "photo_ids":[
+                      
+                    ],
+                    "photo_pdf":"6670b8bd7b24be8bc6dc7132",
+                    "referral":"Петров Петр Петрович",
+                    "residence":"Россия",
+                    "status":"accepted"
+                  }
+                ],
+                "status":"ok"
+              }
+            }
+          }
+        },
+        "summary":"        ",
+        "tags":[
+          "apps"
+        ]
+      }
+    },
+    "/grant_access":{
+      "post":{
+        "description":"grant access<br/>",
+        "operationId":"grant_access",
+        "parameters":[
+          {
+            "in":"body",
+            "name":"accesses",
+            "schema":{
+              "example":{
+                "accesses":[
+                  {
+                    "access":[
+                      "Восток-Запад СПБ",
+                      "Восток-Север СПБ"
+                    ],
+                    "name":"test",
+                    "tg_id":1214224
+                  },
+                  {
+                    "access":[
+                      "all"
+                    ],
+                    "name":"test",
+                    "tg_id":1214224
+                  }
+                ]
+              },
+              "type":"object"
+            }
+          }
+        ],
+        "responses":{
+          "200":{
+            "description":"",
+            "schema":{
+              "example":{
+                "status":"ok"
+              }
+            }
+          }
+        },
+        "summary":"        ",
+        "tags":[
+          "access"
+        ]
+      }
+    },
+    "/mark_apps":{
+      "post":{
+        "description":"mark_apps<br/>",
+        "operationId":"mark_apps",
+        "parameters":[
+          {
+            "in":"body",
+            "name":"apps",
+            "schema":{
+              "example":{
+                "apps":[
+                  {
+                    "application_id":"6670b8bd7b24be8bc6dc7132",
+                    "reason":"no reason",
+                    "status":"accept"
+                  },
+                  {
+                    "application_id":"7344fd7a102b6670b8bd7744",
+                    "reason":"duplicate",
+                    "status":"decline"
+                  }
+                ]
+              },
+              "type":"object"
+            }
+          }
+        ],
+        "responses":{
+          "200":{
+            "description":"",
+            "schema":{
+              "example":{
+                "status":"ok"
+              }
+            }
+          }
+        },
+        "summary":"        ",
+        "tags":[
+          "apps"
+        ]
+      }
+    },
+    "/set_app":{
+      "post":{
+        "description":"set application data<br/>",
+        "operationId":"set_application_data",
+        "parameters":[
+          {
+            "in":"body",
+            "name":"application_id",
+            "schema":{
+              "example":{
+                "application_id":"6670b8bd7b24be8bc6dc7132"
+              },
+              "type":"string"
+            }
+          },
+          {
+            "in":"body",
+            "name":"data",
+            "schema":{
+              "example":{
+                "data":{
+                  "age":"1990-01-01",
+                  "comment":"Комментарий к анкете",
+                  "date_on_object":"2024-05-01",
+                  "gender":"Мужской",
+                  "job":{
+                    "вид_внешности":"славянская и не славянская внешность",
+                    "возраст_до":45,
+                    "возраст_от":18,
+                    "гражданство":"РФ, РБ, Казахстан, Киргизия",
+                    "должность":"Комплектовщик",
+                    "объект":"Восток-Запад СПБ",
+                    "пол":"Мужской",
+                    "тип_работы":"Вахта"
+                  },
+                  "name":"Иванов Иван Иванович",
+                  "phone":"+7 (926) 123-45-67",
+                  "referral":"Петров Петр Петрович",
+                  "residence":"Россия",
+                  "user_id":123456789
+                }
+              },
+              "type":"object"
+            }
+          }
+        ],
+        "responses":{
+          "200":{
+            "description":"",
+            "schema":{
+              "example":{
+                "status":"ok"
+              }
+            }
+          }
+        },
+        "summary":"        ",
+        "tags":[
+          "app_api"
+        ]
+      }
+    },
+    "/set_facility_binds":{
+      "post":{
+        "description":"set facility binds<br/>",
+        "operationId":"set_facility_binds",
+        "parameters":[
+          {
+            "in":"body",
+            "name":"binds",
+            "schema":{
+              "example":{
+                "binds":[
+                  {
+                    "facility":"Восток-Запад СПБ",
+                    "name":"Иванов Иван Иванович"
+                  }
+                ]
+              },
+              "type":"object"
+            }
+          }
+        ],
+        "responses":{
+          "200":{
+            "description":"",
+            "schema":{
+              "example":{
+                "status":"ok"
+              }
+            }
+          }
+        },
+        "summary":"        ",
+        "tags":[
+          "facility_bind"
+        ]
+      }
+    },
+    "/set_jobs":{
+      "post":{
+        "description":"set jobs list<br/>",
+        "operationId":"set_jobs_list",
+        "parameters":[
+          {
+            "in":"body",
+            "name":"jobs",
+            "schema":{
+              "example":{
+                "jobs":[
+                  {
+                    "вид_внешности":"славянская и не славянская внешность",
+                    "возраст_до":45,
+                    "возраст_от":18,
+                    "гражданство":"РФ, РБ, Казахстан, Киргизия",
+                    "должность":"Комплектовщик",
+                    "объект":"Восток-Запад СПБ",
+                    "пол":"Мужской",
+                    "тип_работы":"Вахта",
+                    "удаленный_подбор":true
+                  }
+                ]
+              },
+              "type":"object"
+            }
+          }
+        ],
+        "responses":{
+          "200":{
+            "description":"",
+            "schema":{
+              "example":{
+                "status":"ok"
+              }
+            }
+          }
+        },
+        "summary":"        ",
+        "tags":[
+          "jobs"
+        ]
+      }
+    }
+  },
+  "swagger":"2.0"
+}

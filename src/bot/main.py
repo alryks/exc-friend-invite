@@ -1,10 +1,10 @@
 import logging
 
-from mmpy_bot import Bot, Settings, ExamplePlugin
+from mmpy_bot import Bot, Settings
 
 from bot.config import get_settings
 from bot.logging import configure_logging
-from bot.plugins import BasePlugin
+from bot.plugins import FriendInvitePlugin
 
 
 logger = logging.getLogger(__name__)
@@ -14,8 +14,8 @@ def build_bot() -> Bot:
     settings = get_settings()
 
     return Bot(
-        settings=Settings(), # No need to specify Mattermost settings here, as they are read directly from the environment variables
-        plugins=[BasePlugin(settings=settings)],
+        settings=Settings(),
+        plugins=[FriendInvitePlugin(settings=settings)],
     )
 
 

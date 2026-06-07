@@ -1,3 +1,3 @@
-from bot.plugins.base import BasePlugin
+from bot.plugins.friend_invite import FriendInvitePlugin
 
-__all__ = ["BasePlugin"]
+__all__ = ["FriendInvitePlugin"]
