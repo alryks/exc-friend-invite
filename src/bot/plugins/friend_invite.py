@@ -380,13 +380,13 @@ class FriendInvitePlugin(Plugin):
         current_job = data.get("job")
         default_job = next((key for key, job in session.jobs.items() if job == current_job), None)
         elements = [
-            # {
-            #     "display_name": "Вакансия",
-            #     "name": "job_id",
-            #     "type": "select",
-            #     "optional": False,
-            #     "options": [{"text": format_job(job)[:75], "value": key} for key, job in session.jobs.items()],
-            # },
+            {
+                "display_name": "Вакансия",
+                "name": "job_id",
+                "type": "select",
+                "optional": False,
+                "options": [{"text": format_job(job)[:75], "value": key} for key, job in session.jobs.items()],
+            },
             {"display_name": "Рекомендатель", "name": "referral", "type": "text", "optional": False, "default": data.get("referral", "")},
             {"display_name": "ФИО кандидата", "name": "name", "type": "text", "optional": False, "default": data.get("name", "")},
             # {
