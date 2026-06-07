@@ -129,12 +129,20 @@ class FriendInvitePlugin(Plugin):
             return
         try:
             state = json.loads(event.body.get("state") or "{}")
+            logger.info(
+                "Received application dialog submit: flow_id=%s user_id=%s channel_id=%s",
+                state.get("flow_id"),
+                event.body.get("user_id"),
+                event.body.get("channel_id"),
+            )
             session = self.state.get_by_flow_id(state.get("flow_id"))
             if not session:
+                logger.warning("Dialog submit session not found: state=%s", state)
                 self.driver.respond_to_web(event, {"error": "Сессия устарела. Начните заново командой /start."})
                 return
             data, errors = self._submission_to_data(session, event.body.get("submission", {}))
             if errors:
+                logger.info("Dialog submit validation errors: flow_id=%s errors=%s", session.flow_id, errors)
                 self.driver.respond_to_web(event, {"errors": errors})
                 return
             was_edit = bool(session.application_id)
@@ -172,6 +180,9 @@ class FriendInvitePlugin(Plugin):
         except FriendApiError:
             logger.exception("Dialog submit failed")
             self.driver.respond_to_web(event, {"error": "Не удалось связаться с сервисом анкет. Попробуйте позже."})
+        except Exception:
+            logger.exception("Unexpected dialog submit failure")
+            self.driver.respond_to_web(event, {"error": "Не удалось сохранить анкету. Попробуйте позже."})
 
     def _send_main_menu(self, channel_id: str) -> None:
         self._post(
@@ -251,6 +262,14 @@ class FriendInvitePlugin(Plugin):
             return
         session.jobs = {str(i): job for i, job in enumerate(jobs[:100])}
         self.state.save(session)
+        logger.info(
+            "Opening application dialog: flow_id=%s user_id=%s channel_id=%s jobs=%s edit=%s",
+            session.flow_id,
+            event.user_id,
+            event.channel_id,
+            len(session.jobs),
+            edit,
+        )
         app_data: dict[str, Any] = {}
         if edit and session.application_id:
             app = self.api.get_app(session.application_id)
