@@ -380,23 +380,23 @@ class FriendInvitePlugin(Plugin):
         current_job = data.get("job")
         default_job = next((key for key, job in session.jobs.items() if job == current_job), None)
         elements = [
-            {
-                "display_name": "Вакансия",
-                "name": "job_id",
-                "type": "select",
-                "optional": False,
-                "options": [{"text": format_job(job)[:75], "value": key} for key, job in session.jobs.items()],
-            },
+            # {
+            #     "display_name": "Вакансия",
+            #     "name": "job_id",
+            #     "type": "select",
+            #     "optional": False,
+            #     "options": [{"text": format_job(job)[:75], "value": key} for key, job in session.jobs.items()],
+            # },
             {"display_name": "Рекомендатель", "name": "referral", "type": "text", "optional": False, "default": data.get("referral", "")},
             {"display_name": "ФИО кандидата", "name": "name", "type": "text", "optional": False, "default": data.get("name", "")},
-            {
-                "display_name": "Пол",
-                "name": "gender",
-                "type": "radio",
-                "optional": False,
-                "options": [{"text": "Мужской", "value": "Мужской"}, {"text": "Женский", "value": "Женский"}],
-                "default": data.get("gender", "Мужской"),
-            },
+            # {
+            #     "display_name": "Пол",
+            #     "name": "gender",
+            #     "type": "radio",
+            #     "optional": False,
+            #     "options": [{"text": "Мужской", "value": "Мужской"}, {"text": "Женский", "value": "Женский"}],
+            #     "default": data.get("gender", "Мужской"),
+            # },
             {"display_name": "Телефон", "name": "phone", "type": "text", "subtype": "tel", "optional": True, "default": data.get("phone", "")},
             {"display_name": "Дата рождения", "name": "age", "type": "date", "optional": False, "default": str(data.get("age", ""))[:10]},
             {"display_name": "Дата прибытия", "name": "date_on_object", "type": "date", "optional": False, "default": str(data.get("date_on_object", ""))[:10]},
