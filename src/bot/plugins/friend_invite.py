@@ -260,7 +260,7 @@ class FriendInvitePlugin(Plugin):
         if not jobs:
             self._post(event.channel_id, "Сейчас нет доступных вакансий для удаленного подбора.")
             return
-        session.jobs = {str(i): job for i, job in enumerate(jobs[:1])}
+        session.jobs = {str(i): job for i, job in enumerate(jobs)}
         self.state.save(session)
         logger.debug(
             "Opening application dialog: flow_id=%s user_id=%s channel_id=%s jobs=%s edit=%s",
