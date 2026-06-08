@@ -32,25 +32,28 @@ def format_status(app: dict[str, Any]) -> str:
 def format_application_list_item(app: dict[str, Any]) -> str:
     data = _data(app)
     name = data.get("name") or app.get("name") or "Без имени"
-    return f"{format_status(app)}: {name}\n{format_job(data.get('job') or app.get('job'))}"
+    return (
+        f"**{format_status(app)}:** {name}\n"
+        f"{format_job(data.get('job') or app.get('job'))}"
+    )
 
 
 def format_application_card(app: dict[str, Any], document_count: int | None = None) -> str:
     data = _data(app)
     doc_count = document_count if document_count is not None else _document_count(app)
     lines = [
-        "Анкета кандидата",
+        "### Анкета кандидата",
         "",
-        f"Должность: {format_job(data.get('job') or app.get('job'))}",
-        f"ФИО рекомендателя: {data.get('referral') or 'Не указан'}",
-        f"ФИО кандидата: {data.get('name') or 'Не указан'}",
-        f"Пол: {data.get('gender') or 'Не указан'}",
-        f"Телефон: {data.get('phone') or 'Не указан'}",
-        f"Дата рождения: {date_api_to_human(data.get('age'))}",
-        f"Дата прибытия: {date_api_to_human(data.get('date_on_object'))}",
-        f"Гражданство: {data.get('residence') or 'Не указано'}",
-        f"Документы: {doc_count} шт.",
-        f"Комментарий: {data.get('comment') or 'Не указан'}",
+        f"**Должность:** {format_job(data.get('job') or app.get('job'))}",
+        f"**ФИО рекомендателя:** {data.get('referral') or 'Не указан'}",
+        f"**ФИО кандидата:** {data.get('name') or 'Не указан'}",
+        f"**Пол:** {data.get('gender') or 'Не указан'}",
+        f"**Телефон:** {data.get('phone') or 'Не указан'}",
+        f"**Дата рождения:** {date_api_to_human(data.get('age'))}",
+        f"**Дата прибытия:** {date_api_to_human(data.get('date_on_object'))}",
+        f"**Гражданство:** {data.get('residence') or 'Не указано'}",
+        f"**Документы:** {doc_count} шт.",
+        f"**Комментарий:** {data.get('comment') or 'Не указан'}",
     ]
     return "\n".join(lines)
 

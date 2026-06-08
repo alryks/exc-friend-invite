@@ -53,7 +53,7 @@ class FriendInvitePlugin(Plugin):
         if not message.file_ids:
             self._post(
                 message.channel_id,
-                "Прикрепите фото документов кандидата сообщениями в этот чат.",
+                "**Загрузка документов**\n\nПрикрепите фото документов кандидата сообщениями в этот чат.",
                 actions=self._document_actions(session),
             )
             return
@@ -65,13 +65,13 @@ class FriendInvitePlugin(Plugin):
                 if file.size > self.app_settings.max_document_bytes:
                     self._post(
                         message.channel_id,
-                        f"Файл слишком большой. Максимальный размер: {self._max_mb()} МБ.",
+                        f"**Файл слишком большой.**\n\nМаксимальный размер: **{self._max_mb()} МБ**.",
                     )
                     continue
                 if file.mime_type not in SUPPORTED_MIME_TYPES:
                     self._post(
                         message.channel_id,
-                        "Этот тип файла не поддерживается. Прикрепите фото документа.",
+                        "**Этот тип файла не поддерживается.**\n\nПрикрепите фото документа.",
                     )
                     continue
                 self.api.add_app_photo(session.application_id or "", file.content)
@@ -80,14 +80,14 @@ class FriendInvitePlugin(Plugin):
                 self.state.save(session)
             except FriendApiError:
                 logger.exception("Failed to add application photo")
-                self._post(message.channel_id, "Не удалось связаться с сервисом анкет. Попробуйте позже.")
+                self._post(message.channel_id, "**Не удалось связаться с сервисом анкет.**\n\nПопробуйте позже.")
             except Exception:
                 logger.exception("Failed to process Mattermost file")
-                self._post(message.channel_id, "Не удалось обработать файл. Попробуйте загрузить его еще раз.")
+                self._post(message.channel_id, "**Не удалось обработать файл.**\n\nПопробуйте загрузить его еще раз.")
         if added:
             self._post(
                 message.channel_id,
-                f"Документ добавлен. Загружено: {session.document_count}.",
+                f"**Документ добавлен.**\n\nЗагружено: **{session.document_count}**.",
                 actions=self._document_actions(session),
             )
 
@@ -126,7 +126,7 @@ class FriendInvitePlugin(Plugin):
             update_post_id = None if action in {"add", "open"} else event.post_id
             self._post(
                 event.channel_id,
-                "Не удалось связаться с сервисом анкет. Попробуйте позже.",
+                "**Не удалось связаться с сервисом анкет.**\n\nПопробуйте позже.",
                 update_post_id=update_post_id,
             )
         finally:
@@ -182,7 +182,7 @@ class FriendInvitePlugin(Plugin):
                 self._post(
                     session.channel_id,
                     format_application_card({"data": merged}, session.document_count)
-                    + "\n\nАнкета создана. Прикрепите фото документов кандидата сообщениями в этот чат.\n"
+                    + "\n\n**Анкета создана.**\n\nПрикрепите фото документов кандидата сообщениями в этот чат.\n"
                     "Когда все документы загружены, нажмите \"Закончить загрузку\".",
                     actions=self._document_actions(session),
                 )
@@ -197,7 +197,7 @@ class FriendInvitePlugin(Plugin):
     def _send_main_menu(self, channel_id: str, update_post_id: str | None = None) -> None:
         self._post(
             channel_id,
-            'Акция "Приведи друга"\nВы можете добавить нового кандидата или посмотреть ранее отправленные анкеты.',
+            '### Акция "Приведи друга"\n\nВы можете добавить нового кандидата или посмотреть ранее отправленные анкеты.',
             actions=[
                 self._button("Добавить кандидата", "add"),
                 self._button("Список кандидатов", "list"),
@@ -210,7 +210,7 @@ class FriendInvitePlugin(Plugin):
         if not apps:
             self._post(
                 channel_id,
-                "У вас пока нет отправленных кандидатов",
+                "**У вас пока нет отправленных кандидатов.**",
                 actions=[self._button("Добавить кандидата", "add"), self._button("Назад", "main")],
                 update_post_id=update_post_id,
             )
@@ -235,13 +235,13 @@ class FriendInvitePlugin(Plugin):
 
     def _show_application(self, channel_id: str, user_id: str, application_id: str | None) -> None:
         if not application_id:
-            self._post(channel_id, "Анкета не найдена.")
+            self._post(channel_id, "**Анкета не найдена.**")
             return
         app = self.api.get_app(application_id)
         text = format_application_card(app)
         photo = self.api.get_app_photo(application_id) if _has_documents(app) else {}
         if photo.get("pdf_url"):
-            text += f"\n\nДокументы PDF: {photo['pdf_url']}"
+            text += f"\n\n**Документы PDF:** {photo['pdf_url']}"
         actions = [self._button("В главное меню", "main")]
         if is_editable(app):
             session = FlowSession(
@@ -270,7 +270,7 @@ class FriendInvitePlugin(Plugin):
             )
         jobs = _filter_jobs(self.api.get_jobs())
         if not jobs:
-            self._post(event.channel_id, "Сейчас нет доступных вакансий для удаленного подбора.")
+            self._post(event.channel_id, "**Сейчас нет доступных вакансий для удаленного подбора.**")
             return
         session.jobs = {str(i): job for i, job in enumerate(jobs)}
         self.state.save(session)
@@ -302,13 +302,13 @@ class FriendInvitePlugin(Plugin):
     def _finish_upload(self, event: ActionEvent) -> None:
         session = self._session_from_event(event)
         if not session or not session.application_id:
-            self._post(event.channel_id, "Сессия устарела. Начните заново командой !start.", update_post_id=event.post_id)
+            self._post(event.channel_id, "**Сессия устарела.**\n\nНачните заново командой `!start`.", update_post_id=event.post_id)
             return
         app = self.api.get_app(session.application_id)
         if not _has_documents(app) and session.document_count <= 0:
             self._post(
                 event.channel_id,
-                "Добавьте хотя бы один документ перед отправкой анкеты.",
+                "**Добавьте хотя бы один документ** перед отправкой анкеты.",
                 actions=self._document_actions(session),
                 update_post_id=event.post_id,
             )
@@ -335,7 +335,7 @@ class FriendInvitePlugin(Plugin):
             self.state.save(session)
             self._post(
                 event.channel_id,
-                "Документы очищены.",
+                "**Документы очищены.**",
                 actions=self._document_actions(session),
                 update_post_id=event.post_id,
             )
@@ -349,7 +349,7 @@ class FriendInvitePlugin(Plugin):
             self.state.save(session)
             self._post(
                 event.channel_id,
-                "Прикрепите фото документов кандидата сообщениями в этот чат.",
+                "**Загрузка документов**\n\nПрикрепите фото документов кандидата сообщениями в этот чат.",
                 actions=self._document_actions(session),
                 update_post_id=event.post_id,
             )
@@ -357,23 +357,23 @@ class FriendInvitePlugin(Plugin):
     def _submit_application(self, event: ActionEvent) -> None:
         session = self._session_from_event(event)
         if not session or not session.application_id:
-            self._post(event.channel_id, "Сессия устарела. Начните заново командой !start.", update_post_id=event.post_id)
+            self._post(event.channel_id, "**Сессия устарела.**\n\nНачните заново командой `!start`.", update_post_id=event.post_id)
             return
         app = self.api.get_app(session.application_id)
         data = app.get("data") if isinstance(app.get("data"), dict) else app
         errors = validate_application(data)
         if errors:
-            self._post(event.channel_id, "Проверьте поля анкеты перед отправкой.", update_post_id=event.post_id)
+            self._post(event.channel_id, "**Проверьте поля анкеты** перед отправкой.", update_post_id=event.post_id)
             return
         if not _has_documents(app) and session.document_count <= 0:
-            self._post(event.channel_id, "Добавьте хотя бы один документ перед отправкой анкеты.", update_post_id=event.post_id)
+            self._post(event.channel_id, "**Добавьте хотя бы один документ** перед отправкой анкеты.", update_post_id=event.post_id)
             return
         data = {**data, "user_id": session.surrogate_user_id, "submitted": True, "comment": data.get("comment") or ""}
         self.api.set_app(session.application_id, data)
         self.state.delete(session.flow_id)
         self._post(
             event.channel_id,
-            "Анкета отправлена.",
+            "**Анкета отправлена.**",
             actions=[self._button("Добавить кандидата", "add"), self._button("Список кандидатов", "list")],
             update_post_id=event.post_id,
         )
