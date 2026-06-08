@@ -37,7 +37,7 @@ class FriendInvitePlugin(Plugin):
         )
         self.state = StateStore(ttl_hours=settings.flow_ttl_hours)
 
-    @listen_to(r"^/start$", direct_only=True)
+    @listen_to(r"^!start$", direct_only=True)
     async def start(self, message: Message) -> None:
         if not message.is_direct_message or message.root_id:
             return
@@ -45,7 +45,7 @@ class FriendInvitePlugin(Plugin):
 
     @listen_to(r".*", direct_only=True)
     async def document_listener(self, message: Message) -> None:
-        if not message.is_direct_message or message.root_id or message.text == "/start":
+        if not message.is_direct_message or message.root_id or message.text == "!start":
             return
         session = self.state.get_by_user_id(message.user_id)
         if not session or session.state != FLOW_AWAITING_DOCUMENTS:
@@ -138,7 +138,7 @@ class FriendInvitePlugin(Plugin):
             session = self.state.get_by_flow_id(state.get("flow_id"))
             if not session:
                 logger.debug("Dialog submit session not found: state=%s", state)
-                self.driver.respond_to_web(event, {"error": "Сессия устарела. Начните заново командой /start."})
+                self.driver.respond_to_web(event, {"error": "Сессия устарела. Начните заново командой !start."})
                 return
             data, errors = self._submission_to_data(session, event.body.get("submission", {}))
             if errors:
@@ -290,7 +290,7 @@ class FriendInvitePlugin(Plugin):
     def _finish_upload(self, event: ActionEvent) -> None:
         session = self._session_from_event(event)
         if not session or not session.application_id:
-            self._post(event.channel_id, "Сессия устарела. Начните заново командой /start.")
+            self._post(event.channel_id, "Сессия устарела. Начните заново командой !start.")
             return
         app = self.api.get_app(session.application_id)
         if not _has_documents(app) and session.document_count <= 0:
@@ -333,7 +333,7 @@ class FriendInvitePlugin(Plugin):
     def _submit_application(self, event: ActionEvent) -> None:
         session = self._session_from_event(event)
         if not session or not session.application_id:
-            self._post(event.channel_id, "Сессия устарела. Начните заново командой /start.")
+            self._post(event.channel_id, "Сессия устарела. Начните заново командой !start.")
             return
         app = self.api.get_app(session.application_id)
         data = app.get("data") if isinstance(app.get("data"), dict) else app
