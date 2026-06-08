@@ -27,8 +27,22 @@ def normalize_ru_phone(value: str) -> str | None:
 
 
 def parse_mm_date(value: str) -> str:
-    parsed = datetime.strptime(value, "%Y-%m-%d").date()
+    raw = (value or "").strip()
+    parsed = None
+    for date_format in ("%Y-%m-%d", "%d.%m.%Y", "%d-%m-%Y"):
+        try:
+            parsed = datetime.strptime(raw[:10], date_format).date()
+            break
+        except ValueError:
+            continue
+    if parsed is None:
+        raise ValueError("Unsupported date format")
     return f"{parsed.isoformat()} 00:00:00"
+
+
+def date_api_to_input(value: Any) -> str:
+    parsed = _parse_api_date(value)
+    return parsed.strftime("%d.%m.%Y") if parsed else ""
 
 
 def validate_application(data: dict[str, Any]) -> dict[str, str]:

@@ -18,7 +18,7 @@ from bot.friend_api import FriendApiClient, FriendApiError
 from bot.mattermost_files import MattermostFileClient, SUPPORTED_MIME_TYPES
 from bot.models import FLOW_AWAITING_DOCUMENTS, FLOW_PREVIEW, FlowSession
 from bot.state_store import StateStore
-from bot.validators import normalize_ru_phone, parse_mm_date, validate_application
+from bot.validators import date_api_to_input, normalize_ru_phone, parse_mm_date, validate_application
 
 
 logger = logging.getLogger(__name__)
@@ -398,8 +398,22 @@ class FriendInvitePlugin(Plugin):
                 "default": data.get("gender", "Мужской"),
             },
             {"display_name": "Телефон", "name": "phone", "type": "text", "subtype": "tel", "optional": True, "default": data.get("phone", "")},
-            {"display_name": "Дата рождения", "name": "age", "type": "date", "optional": False, "default": str(data.get("age", ""))[:10]},
-            {"display_name": "Дата прибытия", "name": "date_on_object", "type": "date", "optional": False, "default": str(data.get("date_on_object", ""))[:10]},
+            {
+                "display_name": "Дата рождения",
+                "name": "age",
+                "type": "text",
+                "optional": False,
+                "placeholder": "ДД.ММ.ГГГГ",
+                "default": date_api_to_input(data.get("age")),
+            },
+            {
+                "display_name": "Дата прибытия",
+                "name": "date_on_object",
+                "type": "text",
+                "optional": False,
+                "placeholder": "ДД.ММ.ГГГГ",
+                "default": date_api_to_input(data.get("date_on_object")),
+            },
             {
                 "display_name": "Гражданство",
                 "name": "residence",
