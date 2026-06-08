@@ -398,8 +398,8 @@ class FriendInvitePlugin(Plugin):
                 "default": data.get("gender", "Мужской"),
             },
             {"display_name": "Телефон", "name": "phone", "type": "text", "subtype": "tel", "optional": True, "default": data.get("phone", "")},
-            # {"display_name": "Дата рождения", "name": "age", "type": "date", "optional": False, "default": str(data.get("age", ""))[:10]},
-            # {"display_name": "Дата прибытия", "name": "date_on_object", "type": "date", "optional": False, "default": str(data.get("date_on_object", ""))[:10]},
+            {"display_name": "Дата рождения", "name": "age", "type": "date", "optional": False, "default": str(data.get("age", ""))[:10]},
+            {"display_name": "Дата прибытия", "name": "date_on_object", "type": "date", "optional": False, "default": str(data.get("date_on_object", ""))[:10]},
             {
                 "display_name": "Гражданство",
                 "name": "residence",
