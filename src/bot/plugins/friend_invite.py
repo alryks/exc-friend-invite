@@ -129,7 +129,7 @@ class FriendInvitePlugin(Plugin):
             return
         try:
             state = json.loads(event.body.get("state") or "{}")
-            logger.info(
+            logger.debug(
                 "Received application dialog submit: flow_id=%s user_id=%s channel_id=%s",
                 state.get("flow_id"),
                 event.body.get("user_id"),
@@ -137,7 +137,7 @@ class FriendInvitePlugin(Plugin):
             )
             session = self.state.get_by_flow_id(state.get("flow_id"))
             if not session:
-                logger.warning("Dialog submit session not found: state=%s", state)
+                logger.debug("Dialog submit session not found: state=%s", state)
                 self.driver.respond_to_web(event, {"error": "Сессия устарела. Начните заново командой /start."})
                 return
             data, errors = self._submission_to_data(session, event.body.get("submission", {}))
@@ -262,7 +262,7 @@ class FriendInvitePlugin(Plugin):
             return
         session.jobs = {str(i): job for i, job in enumerate(jobs[:1])}
         self.state.save(session)
-        logger.info(
+        logger.debug(
             "Opening application dialog: flow_id=%s user_id=%s channel_id=%s jobs=%s edit=%s",
             session.flow_id,
             event.user_id,
