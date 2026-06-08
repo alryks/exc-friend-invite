@@ -29,11 +29,12 @@ def format_status(app: dict[str, Any]) -> str:
     return "Черновик"
 
 
-def format_application_list_item(app: dict[str, Any]) -> str:
+def format_application_list_item(app: dict[str, Any], number: int | None = None) -> str:
     data = _data(app)
     name = data.get("name") or app.get("name") or "Без имени"
+    prefix = f"**{number}.** " if number is not None else ""
     return (
-        f"**{format_status(app)}:** {name}\n"
+        f"{prefix}**{format_status(app)}:** {name}\n"
         f"{format_job(data.get('job') or app.get('job'))}"
     )
 

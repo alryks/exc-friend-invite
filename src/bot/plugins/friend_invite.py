@@ -217,20 +217,23 @@ class FriendInvitePlugin(Plugin):
             return
         start = max(page, 0) * PAGE_SIZE
         chunk = apps[start : start + PAGE_SIZE]
-        actions = [
+        actions = [self._button("В главное меню", "main")]
+        if page > 0:
+            actions.append(self._button("Назад", "list", page=page - 1))
+        actions.extend(
             self._button(
-                f"Открыть: {(app.get('data') or app).get('name', 'Анкета')}"[:64],
+                str(start + index + 1),
                 "open",
                 application_id=str(app.get("application_id") or app.get("_id") or app.get("id")),
             )
-            for app in chunk
-        ]
-        if page > 0:
-            actions.append(self._button("Назад", "list", page=page - 1))
+            for index, app in enumerate(chunk)
+        )
         if start + PAGE_SIZE < len(apps):
             actions.append(self._button("Далее", "list", page=page + 1))
-        actions.append(self._button("В главное меню", "main"))
-        text = "\n\n".join(format_application_list_item(app) for app in chunk)
+        text = "\n\n".join(
+            format_application_list_item(app, number=start + index + 1)
+            for index, app in enumerate(chunk)
+        )
         self._post(channel_id, text, actions=actions, update_post_id=update_post_id)
 
     def _show_application(self, channel_id: str, user_id: str, application_id: str | None) -> None:
