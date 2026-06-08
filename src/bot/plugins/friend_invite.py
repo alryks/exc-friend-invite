@@ -97,9 +97,14 @@ class FriendInvitePlugin(Plugin):
         action = context.get("action")
         try:
             if action == "main":
-                self._send_main_menu(event.channel_id)
+                self._send_main_menu(event.channel_id, update_post_id=event.post_id)
             elif action == "list":
-                self._show_applications(event.user_id, event.channel_id, int(context.get("page", 0)))
+                self._show_applications(
+                    event.user_id,
+                    event.channel_id,
+                    int(context.get("page", 0)),
+                    update_post_id=event.post_id,
+                )
             elif action == "open":
                 self._show_application(event.channel_id, event.user_id, context.get("application_id"))
             elif action == "add":
@@ -118,7 +123,12 @@ class FriendInvitePlugin(Plugin):
                 self._open_application_dialog(event, edit=True)
         except FriendApiError:
             logger.exception("Friend API request failed")
-            self._post(event.channel_id, "Не удалось связаться с сервисом анкет. Попробуйте позже.")
+            update_post_id = None if action in {"add", "open"} else event.post_id
+            self._post(
+                event.channel_id,
+                "Не удалось связаться с сервисом анкет. Попробуйте позже.",
+                update_post_id=update_post_id,
+            )
         finally:
             self.driver.respond_to_web(event, {})
 
@@ -184,7 +194,7 @@ class FriendInvitePlugin(Plugin):
             logger.exception("Unexpected dialog submit failure")
             self.driver.respond_to_web(event, {"error": "Не удалось сохранить анкету. Попробуйте позже."})
 
-    def _send_main_menu(self, channel_id: str) -> None:
+    def _send_main_menu(self, channel_id: str, update_post_id: str | None = None) -> None:
         self._post(
             channel_id,
             'Акция "Приведи друга"\nВы можете добавить нового кандидата или посмотреть ранее отправленные анкеты.',
@@ -192,15 +202,17 @@ class FriendInvitePlugin(Plugin):
                 self._button("Добавить кандидата", "add"),
                 self._button("Список кандидатов", "list"),
             ],
+            update_post_id=update_post_id,
         )
 
-    def _show_applications(self, user_id: str, channel_id: str, page: int) -> None:
+    def _show_applications(self, user_id: str, channel_id: str, page: int, update_post_id: str | None = None) -> None:
         apps = self.api.get_user_apps(_surrogate_user_id(user_id))
         if not apps:
             self._post(
                 channel_id,
                 "У вас пока нет отправленных кандидатов",
                 actions=[self._button("Добавить кандидата", "add"), self._button("Назад", "main")],
+                update_post_id=update_post_id,
             )
             return
         start = max(page, 0) * PAGE_SIZE
@@ -219,7 +231,7 @@ class FriendInvitePlugin(Plugin):
             actions.append(self._button("Далее", "list", page=page + 1))
         actions.append(self._button("В главное меню", "main"))
         text = "\n\n".join(format_application_list_item(app) for app in chunk)
-        self._post(channel_id, text, actions=actions)
+        self._post(channel_id, text, actions=actions, update_post_id=update_post_id)
 
     def _show_application(self, channel_id: str, user_id: str, application_id: str | None) -> None:
         if not application_id:
@@ -290,11 +302,16 @@ class FriendInvitePlugin(Plugin):
     def _finish_upload(self, event: ActionEvent) -> None:
         session = self._session_from_event(event)
         if not session or not session.application_id:
-            self._post(event.channel_id, "Сессия устарела. Начните заново командой !start.")
+            self._post(event.channel_id, "Сессия устарела. Начните заново командой !start.", update_post_id=event.post_id)
             return
         app = self.api.get_app(session.application_id)
         if not _has_documents(app) and session.document_count <= 0:
-            self._post(event.channel_id, "Добавьте хотя бы один документ перед отправкой анкеты.", actions=self._document_actions(session))
+            self._post(
+                event.channel_id,
+                "Добавьте хотя бы один документ перед отправкой анкеты.",
+                actions=self._document_actions(session),
+                update_post_id=event.post_id,
+            )
             return
         session.state = FLOW_PREVIEW
         self.state.save(session)
@@ -307,6 +324,7 @@ class FriendInvitePlugin(Plugin):
                 self._button("Загрузить документы заново", "reload_docs", flow_id=session.flow_id),
                 self._button("Отменить", "cancel", flow_id=session.flow_id),
             ],
+            update_post_id=event.post_id,
         )
 
     def _clear_documents(self, event: ActionEvent) -> None:
@@ -315,7 +333,12 @@ class FriendInvitePlugin(Plugin):
             self.api.clear_app_photo(session.application_id)
             session.document_count = 0
             self.state.save(session)
-            self._post(event.channel_id, "Документы очищены.", actions=self._document_actions(session))
+            self._post(
+                event.channel_id,
+                "Документы очищены.",
+                actions=self._document_actions(session),
+                update_post_id=event.post_id,
+            )
 
     def _reload_documents(self, event: ActionEvent) -> None:
         session = self._session_from_event(event)
@@ -328,21 +351,22 @@ class FriendInvitePlugin(Plugin):
                 event.channel_id,
                 "Прикрепите фото документов кандидата сообщениями в этот чат.",
                 actions=self._document_actions(session),
+                update_post_id=event.post_id,
             )
 
     def _submit_application(self, event: ActionEvent) -> None:
         session = self._session_from_event(event)
         if not session or not session.application_id:
-            self._post(event.channel_id, "Сессия устарела. Начните заново командой !start.")
+            self._post(event.channel_id, "Сессия устарела. Начните заново командой !start.", update_post_id=event.post_id)
             return
         app = self.api.get_app(session.application_id)
         data = app.get("data") if isinstance(app.get("data"), dict) else app
         errors = validate_application(data)
         if errors:
-            self._post(event.channel_id, "Проверьте поля анкеты перед отправкой.")
+            self._post(event.channel_id, "Проверьте поля анкеты перед отправкой.", update_post_id=event.post_id)
             return
         if not _has_documents(app) and session.document_count <= 0:
-            self._post(event.channel_id, "Добавьте хотя бы один документ перед отправкой анкеты.")
+            self._post(event.channel_id, "Добавьте хотя бы один документ перед отправкой анкеты.", update_post_id=event.post_id)
             return
         data = {**data, "user_id": session.surrogate_user_id, "submitted": True, "comment": data.get("comment") or ""}
         self.api.set_app(session.application_id, data)
@@ -351,6 +375,7 @@ class FriendInvitePlugin(Plugin):
             event.channel_id,
             "Анкета отправлена.",
             actions=[self._button("Добавить кандидата", "add"), self._button("Список кандидатов", "list")],
+            update_post_id=event.post_id,
         )
 
     def _cancel_application(self, event: ActionEvent) -> None:
@@ -358,7 +383,7 @@ class FriendInvitePlugin(Plugin):
         if session and session.application_id:
             self.api.delete_app(session.application_id)
             self.state.delete(session.flow_id)
-        self._send_main_menu(event.channel_id)
+        self._send_main_menu(event.channel_id, update_post_id=event.post_id)
 
     def _submission_to_data(self, session: FlowSession, submission: dict[str, Any]) -> tuple[dict[str, Any], dict[str, str]]:
         phone = normalize_ru_phone(str(submission.get("phone") or ""))
@@ -448,11 +473,23 @@ class FriendInvitePlugin(Plugin):
             },
         }
 
-    def _post(self, channel_id: str, message: str, actions: list[dict[str, Any]] | None = None) -> None:
+    def _post(
+        self,
+        channel_id: str,
+        message: str,
+        actions: list[dict[str, Any]] | None = None,
+        update_post_id: str | None = None,
+    ) -> None:
         props = None
         if actions:
             props = {"attachments": [{"text": message, "actions": actions}]}
             message = ""
+        if update_post_id:
+            try:
+                self.driver.posts.patch_post(update_post_id, {"message": message, "props": props or {}})
+                return
+            except Exception:
+                logger.exception("Failed to update Mattermost post, creating a new one")
         self.driver.create_post(channel_id=channel_id, message=message, props=props)
 
     def _max_mb(self) -> int:
