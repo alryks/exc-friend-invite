@@ -31,6 +31,8 @@ class Settings(BaseSettings):
     flow_ttl_hours: int = Field(default=24, alias="FLOW_TTL_HOURS")
     max_document_bytes: int = Field(default=10 * 1024 * 1024, alias="MAX_DOCUMENT_BYTES")
     enable_access_check: bool = Field(default=False, alias="ENABLE_ACCESS_CHECK")
+    access_check_debug_override: bool = Field(default=False, alias="ACCESS_CHECK_DEBUG_OVERRIDE")
+    access_check_debug_full_name: str = Field(default="", alias="ACCESS_CHECK_DEBUG_FULL_NAME")
 
     @model_validator(mode="after")
     def validate_friend_api_key(self) -> "Settings":

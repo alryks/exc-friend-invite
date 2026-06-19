@@ -16,7 +16,9 @@
 - `FRIEND_API_MOCK_MODE=false` - dev-режим без реального API. В production оставьте `false`; без `FRIEND_API_KEY` бот завершит старт с ошибкой.
 - `FLOW_TTL_HOURS=24` - TTL незавершенного сценария в памяти процесса.
 - `MAX_DOCUMENT_BYTES=10485760` - максимальный размер одного документа.
-- `ENABLE_ACCESS_CHECK=false` - зарезервировано для будущего ограничения доступа по объектам.
+- `ENABLE_ACCESS_CHECK=false` - проверять пользователя через `/get_facility_binds` и показывать при создании анкеты только вакансии доступных ему объектов. Старые анкеты пользователя остаются доступны независимо от текущих прав.
+- `ACCESS_CHECK_DEBUG_OVERRIDE=false` - dev-only подмена ФИО Mattermost для проверки сценариев доступа.
+- `ACCESS_CHECK_DEBUG_FULL_NAME=` - ФИО для подмены, используется только если `ACCESS_CHECK_DEBUG_OVERRIDE=true`.
 
 ## Настройка Mattermost
 

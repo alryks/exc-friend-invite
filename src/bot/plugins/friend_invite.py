@@ -3,6 +3,9 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import re
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from mmpy_bot import ActionEvent, Message, Plugin, listen_to, listen_webhook
@@ -23,6 +26,13 @@ from bot.validators import date_api_to_input, normalize_ru_phone, parse_mm_date,
 
 logger = logging.getLogger(__name__)
 PAGE_SIZE = 5
+FACILITY_BINDS_TTL = timedelta(minutes=5)
+
+
+@dataclass(frozen=True)
+class UserAccess:
+    full_name: str
+    facilities: set[str]
 
 
 class FriendInvitePlugin(Plugin):
@@ -36,6 +46,7 @@ class FriendInvitePlugin(Plugin):
             mock_mode=settings.friend_api_mock_mode,
         )
         self.state = StateStore(ttl_hours=settings.flow_ttl_hours)
+        self._facility_binds_cache: tuple[datetime, list[dict[str, Any]]] | None = None
 
     @listen_to(r"^!start$", direct_only=True)
     async def start(self, message: Message) -> None:
@@ -155,6 +166,9 @@ class FriendInvitePlugin(Plugin):
                 logger.info("Dialog submit validation errors: flow_id=%s errors=%s", session.flow_id, errors)
                 self.driver.respond_to_web(event, {"errors": errors})
                 return
+            if not self._session_has_job_access(session, data.get("job")):
+                self.driver.respond_to_web(event, {"error": "Выбранная вакансия вам недоступна."})
+                return
             was_edit = bool(session.application_id)
             if was_edit:
                 app = self.api.get_app(session.application_id)
@@ -253,6 +267,7 @@ class FriendInvitePlugin(Plugin):
                 channel_id=channel_id,
                 application_id=application_id,
                 state=FLOW_PREVIEW,
+                enforce_facility_access=False,
             )
             self.state.save(session)
             actions = [
@@ -271,9 +286,32 @@ class FriendInvitePlugin(Plugin):
                 channel_id=event.channel_id,
                 team_id=event.team_id,
             )
+        app_data: dict[str, Any] = {}
+        if edit and session.application_id:
+            app = self.api.get_app(session.application_id)
+            app_data = app.get("data") if isinstance(app.get("data"), dict) else app
         jobs = _filter_jobs(self.api.get_jobs())
+        if session.enforce_facility_access:
+            access = self._authorize_user(event.user_id, event.channel_id, update_post_id=event.post_id)
+            if access is None:
+                return
+            jobs = _filter_jobs_by_facilities(jobs, access.facilities)
+        elif self.app_settings.enable_access_check:
+            access = self._authorize_user(event.user_id)
+            if access is None:
+                current_job = app_data.get("job")
+                jobs = [current_job] if isinstance(current_job, dict) else []
+            else:
+                jobs = _filter_jobs_by_facilities(jobs, access.facilities)
+                current_job = app_data.get("job")
+                if isinstance(current_job, dict) and current_job not in jobs:
+                    jobs.insert(0, current_job)
         if not jobs:
-            self._post(event.channel_id, "**Сейчас нет доступных вакансий для удаленного подбора.**")
+            self._post(
+                event.channel_id,
+                "**Сейчас нет доступных вам вакансий для удаленного подбора.**",
+                update_post_id=event.post_id,
+            )
             return
         session.jobs = {str(i): job for i, job in enumerate(jobs)}
         self.state.save(session)
@@ -285,10 +323,6 @@ class FriendInvitePlugin(Plugin):
             len(session.jobs),
             edit,
         )
-        app_data: dict[str, Any] = {}
-        if edit and session.application_id:
-            app = self.api.get_app(session.application_id)
-            app_data = app.get("data") if isinstance(app.get("data"), dict) else app
         dialog = {
             "trigger_id": event.trigger_id,
             "url": self.app_settings.webhook_url("friend-dialog-submit"),
@@ -367,6 +401,8 @@ class FriendInvitePlugin(Plugin):
         errors = validate_application(data)
         if errors:
             self._post(event.channel_id, "**Проверьте поля анкеты** перед отправкой.", update_post_id=event.post_id)
+            return
+        if not self._session_has_job_access(session, data.get("job"), event.channel_id, event.post_id):
             return
         if not _has_documents(app) and session.document_count <= 0:
             self._post(event.channel_id, "**Добавьте хотя бы один документ** перед отправкой анкеты.", update_post_id=event.post_id)
@@ -467,6 +503,94 @@ class FriendInvitePlugin(Plugin):
         context = event.context or event.body.get("context", {})
         return self.state.get_by_flow_id(context.get("flow_id")) or self.state.get_by_user_id(event.user_id)
 
+    def _authorize_user(
+        self,
+        user_id: str,
+        channel_id: str | None = None,
+        update_post_id: str | None = None,
+    ) -> UserAccess | None:
+        if not self.app_settings.enable_access_check:
+            return UserAccess(full_name="", facilities=set())
+        try:
+            full_name = self._mattermost_full_name(user_id)
+        except Exception:
+            logger.exception("Could not load Mattermost user info: user_id=%s", user_id)
+            if channel_id:
+                self._post(
+                    channel_id,
+                    "**Не удалось проверить доступ.**\n\nПопробуйте позже.",
+                    update_post_id=update_post_id,
+                )
+            return None
+        normalized_user_name = _normalize_name(full_name)
+        facilities = {
+            str(bind.get("facility") or "").strip()
+            for bind in self._get_facility_binds()
+            if _names_match(normalized_user_name, _normalize_name(str(bind.get("name") or "")))
+            and str(bind.get("facility") or "").strip()
+        }
+        if facilities:
+            return UserAccess(full_name=full_name, facilities=facilities)
+        logger.info("Mattermost user is not authorized: user_id=%s full_name=%r", user_id, full_name)
+        if channel_id:
+            self._post(
+                channel_id,
+                "**Доступ запрещен.**\n\nВаш пользователь Mattermost не найден в списке сотрудников, которым доступны вакансии.",
+                update_post_id=update_post_id,
+            )
+        return None
+
+    def _session_has_job_access(
+        self,
+        session: FlowSession,
+        job: Any,
+        channel_id: str | None = None,
+        update_post_id: str | None = None,
+    ) -> bool:
+        if not self.app_settings.enable_access_check or not session.enforce_facility_access:
+            return True
+        access = self._authorize_user(session.mattermost_user_id, channel_id, update_post_id)
+        if access is None:
+            return False
+        if isinstance(job, dict) and _normalize_facility(_job_facility(job)) in {_normalize_facility(f) for f in access.facilities}:
+            return True
+        if channel_id:
+            self._post(
+                channel_id,
+                "**Выбранная вакансия вам недоступна.**",
+                update_post_id=update_post_id,
+            )
+        return False
+
+    def _get_facility_binds(self) -> list[dict[str, Any]]:
+        now = datetime.now(timezone.utc)
+        if self._facility_binds_cache:
+            cached_at, binds = self._facility_binds_cache
+            if now - cached_at < FACILITY_BINDS_TTL:
+                return binds
+        binds = self.api.get_facility_binds()
+        self._facility_binds_cache = (now, binds)
+        return binds
+
+    def _mattermost_full_name(self, user_id: str) -> str:
+        if self.app_settings.access_check_debug_override and self.app_settings.access_check_debug_full_name.strip():
+            full_name = self.app_settings.access_check_debug_full_name.strip()
+            logger.warning("Using debug Mattermost full name override for access check: %r", full_name)
+            return full_name
+        user = self.driver.get_user_info(user_id)
+        parts = [
+            str(user.get("last_name") or "").strip(),
+            str(user.get("first_name") or "").strip(),
+        ]
+        full_name = " ".join(part for part in parts if part)
+        if full_name:
+            return full_name
+        for field in ("nickname", "username"):
+            value = str(user.get(field) or "").strip()
+            if value:
+                return value
+        return ""
+
     def _button(self, name: str, action: str, **context: Any) -> dict[str, Any]:
         return {
             "name": name,
@@ -506,6 +630,38 @@ def _surrogate_user_id(mm_user_id: str) -> int:
 
 def _filter_jobs(jobs: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return [job for job in jobs if job.get("удаленный_подбор", True) is True]
+
+
+def _filter_jobs_by_facilities(jobs: list[dict[str, Any]], facilities: set[str]) -> list[dict[str, Any]]:
+    if not facilities:
+        return jobs
+    normalized_facilities = {_normalize_facility(facility) for facility in facilities}
+    return [job for job in jobs if _normalize_facility(_job_facility(job)) in normalized_facilities]
+
+
+def _job_facility(job: dict[str, Any]) -> str:
+    for key in ("объект", "object", "facility", "facility_name", "name_object"):
+        value = job.get(key)
+        if value:
+            return str(value)
+    return ""
+
+
+def _normalize_facility(value: str) -> str:
+    return re.sub(r"\s+", " ", value.replace("ё", "е").strip().casefold())
+
+
+def _normalize_name(value: str) -> tuple[str, ...]:
+    normalized = value.replace("ё", "е").casefold()
+    return tuple(part for part in re.split(r"[\s\-]+", normalized) if part)
+
+
+def _names_match(user_name: tuple[str, ...], bind_name: tuple[str, ...]) -> bool:
+    if not user_name or not bind_name:
+        return False
+    if user_name == bind_name:
+        return True
+    return len(user_name) >= 2 and len(bind_name) >= 2 and user_name[:2] == bind_name[:2]
 
 
 def _safe_date(value: Any) -> str:

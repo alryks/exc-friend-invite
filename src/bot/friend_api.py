@@ -77,6 +77,11 @@ class FriendApiClient:
         jobs = payload.get("jobs", payload.get("data", payload))
         return jobs if isinstance(jobs, list) else []
 
+    def get_facility_binds(self) -> list[dict[str, Any]]:
+        payload = self._post("/get_facility_binds", {})
+        binds = payload.get("binds", payload.get("data", payload))
+        return binds if isinstance(binds, list) else []
+
     def _post(self, endpoint: str, payload: dict[str, Any]) -> dict[str, Any]:
         if self._mock_mode:
             logger.debug("Friend API mock mode is enabled")
@@ -151,6 +156,13 @@ class FriendApiClient:
                 if app.get("data", {}).get("user_id") == payload.get("tg_id")
             ]
             return {"status": "ok", "applications": apps}
+        if endpoint == "/get_facility_binds":
+            return {
+                "status": "ok",
+                "binds": [
+                    {"facility": "Тестовый объект", "name": "Тестовый Пользователь"},
+                ],
+            }
         if endpoint == "/get_app_photo":
             return {"status": "ok", "pdf_url": ""}
         return {"status": "ok"}
