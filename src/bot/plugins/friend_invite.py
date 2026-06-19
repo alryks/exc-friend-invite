@@ -221,6 +221,7 @@ class FriendInvitePlugin(Plugin):
 
     def _show_applications(self, user_id: str, channel_id: str, page: int, update_post_id: str | None = None) -> None:
         apps = self.api.get_user_apps(_surrogate_user_id(user_id))
+        apps.reverse()
         if not apps:
             self._post(
                 channel_id,
