@@ -310,6 +310,7 @@ class FriendInvitePlugin(Plugin):
             self._post(
                 event.channel_id,
                 "**Сейчас нет доступных вам вакансий для удаленного подбора.**",
+                actions=[self._button("В главное меню", "main")],
                 update_post_id=event.post_id,
             )
             return
@@ -519,6 +520,7 @@ class FriendInvitePlugin(Plugin):
                 self._post(
                     channel_id,
                     "**Не удалось проверить доступ.**\n\nПопробуйте позже.",
+                    actions=[self._button("В главное меню", "main")],
                     update_post_id=update_post_id,
                 )
             return None
@@ -536,6 +538,7 @@ class FriendInvitePlugin(Plugin):
             self._post(
                 channel_id,
                 "**Доступ запрещен.**\n\nВаш пользователь Mattermost не найден в списке сотрудников, которым доступны вакансии.",
+                actions=[self._button("В главное меню", "main")],
                 update_post_id=update_post_id,
             )
         return None
