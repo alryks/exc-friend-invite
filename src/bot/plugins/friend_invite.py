@@ -463,7 +463,7 @@ class FriendInvitePlugin(Plugin):
                 "options": [{"text": "Мужской", "value": "Мужской"}, {"text": "Женский", "value": "Женский"}],
                 "default": data.get("gender", "Мужской"),
             },
-            {"display_name": "Телефон", "name": "phone", "type": "text", "subtype": "tel", "optional": True, "default": data.get("phone", "")},
+            {"display_name": "Телефон", "name": "phone", "type": "text", "subtype": "tel", "optional": False, "default": data.get("phone", "")},
             {
                 "display_name": "Дата рождения",
                 "name": "age",

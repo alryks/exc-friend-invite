@@ -59,11 +59,8 @@ def validate_application(data: dict[str, Any]) -> dict[str, str]:
         errors["residence"] = "Выберите гражданство."
 
     phone = normalize_ru_phone(str(data.get("phone") or ""))
-    if phone is None:
-        errors["phone"] = (
-            "Введите российский номер или оставьте поле пустым, "
-            "а иностранный номер укажите в комментарии."
-        )
+    if not phone:
+        errors["phone"] = "Введите российский номер телефона."
 
     today = date.today()
     birth_date = _parse_api_date(data.get("age"))
