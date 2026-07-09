@@ -291,7 +291,7 @@ class FriendInvitePlugin(Plugin):
         if edit and session.application_id:
             app = self.api.get_app(session.application_id)
             app_data = app.get("data") if isinstance(app.get("data"), dict) else app
-        jobs = _filter_jobs(self.api.get_jobs())
+        jobs = self.api.get_jobs()
         if session.enforce_facility_access:
             access = self._authorize_user(event.user_id, event.channel_id, update_post_id=event.post_id)
             if access is None:
@@ -310,7 +310,7 @@ class FriendInvitePlugin(Plugin):
         if not jobs:
             self._post(
                 event.channel_id,
-                "**Сейчас нет доступных вам вакансий для удаленного подбора.**",
+                "**Сейчас нет доступных вам вакансий.**",
                 actions=[self._button("В главное меню", "main")],
                 update_post_id=event.post_id,
             )
@@ -630,10 +630,6 @@ class FriendInvitePlugin(Plugin):
 def _surrogate_user_id(mm_user_id: str) -> int:
     digest = hashlib.sha256(mm_user_id.encode("utf-8")).digest()[:8]
     return int.from_bytes(digest, "big") & ((1 << 63) - 1)
-
-
-def _filter_jobs(jobs: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    return [job for job in jobs if job.get("удаленный_подбор", True) is True]
 
 
 def _filter_jobs_by_facilities(jobs: list[dict[str, Any]], facilities: set[str]) -> list[dict[str, Any]]:
