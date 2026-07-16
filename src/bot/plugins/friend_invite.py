@@ -21,6 +21,7 @@ from bot.friend_api import FriendApiClient, FriendApiError
 from bot.mattermost_files import MattermostFileClient, SUPPORTED_MIME_TYPES
 from bot.models import FLOW_AWAITING_DOCUMENTS, FLOW_PREVIEW, FlowSession
 from bot.state_store import StateStore
+from bot.synology_spreadsheet import SynologySpreadsheetExporter, candidate_snapshot_row
 from bot.validators import date_api_to_input, normalize_ru_phone, parse_mm_date, validate_application
 
 
@@ -47,6 +48,20 @@ class FriendInvitePlugin(Plugin):
         )
         self.state = StateStore(ttl_hours=settings.flow_ttl_hours)
         self._facility_binds_cache: tuple[datetime, list[dict[str, Any]]] | None = None
+        self.synology: SynologySpreadsheetExporter | None = None
+        if settings.synology_spreadsheet_configured:
+            self.synology = SynologySpreadsheetExporter(
+                api_host=settings.synology_spreadsheet_api_host or "",
+                username=settings.synology_spreadsheet_username or "",
+                password=settings.synology_spreadsheet_password or "",
+                host=settings.synology_spreadsheet_host or "",
+                protocol=settings.synology_spreadsheet_protocol,
+                spreadsheet_id=settings.synology_spreadsheet_id,
+                sheet_name=settings.synology_spreadsheet_range,
+                timeout_seconds=settings.friend_api_timeout_seconds,
+            )
+        else:
+            logger.warning("Synology spreadsheet export is disabled: access settings are incomplete")
 
     @listen_to(r"^!start$", direct_only=True)
     async def start(self, message: Message) -> None:
@@ -89,6 +104,7 @@ class FriendInvitePlugin(Plugin):
                 added += 1
                 session.document_count += 1
                 self.state.save(session)
+                self._export_application_snapshot(session)
             except FriendApiError:
                 logger.exception("Failed to add application photo")
                 self._post(message.channel_id, "**Не удалось связаться с сервисом анкет.**\n\nПопробуйте позже.")
@@ -179,6 +195,7 @@ class FriendInvitePlugin(Plugin):
                 session.application_id = self.api.create_app()
                 merged = data
             self.api.set_app(session.application_id, merged)
+            self._export_application_snapshot(session)
             session.state = FLOW_PREVIEW if was_edit else FLOW_AWAITING_DOCUMENTS
             self.state.save(session)
             if was_edit:
@@ -352,6 +369,7 @@ class FriendInvitePlugin(Plugin):
                 update_post_id=event.post_id,
             )
             return
+        self._export_application_snapshot(session)
         session.state = FLOW_PREVIEW
         self.state.save(session)
         self._post(
@@ -411,6 +429,7 @@ class FriendInvitePlugin(Plugin):
             return
         data = {**data, "user_id": session.surrogate_user_id, "submitted": True, "comment": data.get("comment") or ""}
         self.api.set_app(session.application_id, data)
+        self._export_application_snapshot(session)
         self.state.delete(session.flow_id)
         self._post(
             event.channel_id,
@@ -594,6 +613,38 @@ class FriendInvitePlugin(Plugin):
             if value:
                 return value
         return ""
+
+    def _export_application_snapshot(
+        self,
+        session: FlowSession,
+    ) -> None:
+        if not self.synology or not session.application_id:
+            return
+        try:
+            app = self.api.get_app(session.application_id)
+            data = app.get("data") if isinstance(app.get("data"), dict) else app
+            pdf_url = ""
+            if _has_documents(app) or session.document_count > 0:
+                photo = self.api.get_app_photo(session.application_id)
+                pdf_url = str(photo.get("pdf_url") or photo.get("photo_pdf") or "")
+            self._export_snapshot(session, data, pdf_url)
+        except Exception:
+            logger.exception("Could not prepare candidate snapshot for Synology export")
+
+    def _export_snapshot(
+        self,
+        session: FlowSession,
+        data: dict[str, Any],
+        pdf_url: str = "",
+    ) -> None:
+        if not self.synology:
+            return
+        try:
+            employee_name = self._mattermost_full_name(session.mattermost_user_id)
+        except Exception:
+            logger.exception("Could not load employee name for Synology export")
+            employee_name = ""
+        self.synology.enqueue(candidate_snapshot_row(employee_name, data, pdf_url))
 
     def _button(self, name: str, action: str, **context: Any) -> dict[str, Any]:
         return {

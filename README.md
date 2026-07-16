@@ -14,6 +14,11 @@
 - `FRIEND_API_KEY` - ключ для заголовка `X-API-KEY`.
 - `FRIEND_API_TIMEOUT_SECONDS=10` - timeout запросов к Friend API.
 - `FRIEND_API_MOCK_MODE=false` - dev-режим без реального API. В production оставьте `false`; без `FRIEND_API_KEY` бот завершит старт с ошибкой.
+- `SYNOLOGY_SPREADSHEET_API_HOST`, `SYNOLOGY_SPREADSHEET_USERNAME`,
+  `SYNOLOGY_SPREADSHEET_PASSWORD`, `SYNOLOGY_SPREADSHEET_HOST` и
+  `SYNOLOGY_SPREADSHEET_PROTOCOL` — доступ к API Synology Spreadsheet.
+- `SYNOLOGY_SPREADSHEET_ID` и `SYNOLOGY_SPREADSHEET_RANGE` — идентификатор
+  таблицы и имя листа для промежуточных и финальных снимков анкеты.
 - `FLOW_TTL_HOURS=24` - TTL незавершенного сценария в памяти процесса.
 - `MAX_DOCUMENT_BYTES=10485760` - максимальный размер одного документа.
 - `ENABLE_ACCESS_CHECK=false` - проверять пользователя через `/get_facility_binds` и показывать при создании анкеты только вакансии доступных ему объектов. Старые анкеты пользователя остаются доступны независимо от текущих прав.
